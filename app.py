@@ -6,7 +6,8 @@ app = Flask(__name__,template_folder='Frontend')
 
 DB_CONFIG = {
     'host': 'localhost',
-    'database': 'sensor',
+    'database': 'db_luxgrow',
+    'port': 3306,
     'user': 'root',
     'password': ''
 }
