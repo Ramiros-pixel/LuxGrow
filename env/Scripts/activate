@@ -35,7 +35,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\Asus\AgrikulturSMRT\env"
+VIRTUAL_ENV="C:\Users\Asus\LuxGrow\code\env"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
