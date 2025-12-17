@@ -3,12 +3,11 @@ import mysql.connector
 from Backend import app
 from datetime import datetime, timedelta
 
-latest_realtime_data={}
-def update_realtime():
+latest_realtime_data_lux={}
+def update_realtime_lux():
     global latest_realtime_data
     data = request.get_json() or {}  
-    print(data)
-    distance = data.get('distance')
+    distance = data.get('lux')
     timestamp = data.get('timestamp', datetime.now().isoformat())
     
     latest_realtime_data = {

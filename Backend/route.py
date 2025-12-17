@@ -2,8 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import mysql.connector
 from Backend import app
 from datetime import datetime, timedelta
-from Backend.DataCreate.realtime import update_realtime
-from Backend.DataCreate.realtime import update_realtime, get_latest_data
+from Backend.DataCreate.realtime import update_realtime_lux, latest_realtime_data_lux
 
 
 @app.route('/')
@@ -16,11 +15,11 @@ def api():
 
 @app.route('/api/realtime', methods=['POST'])
 def receive_realtime():
-    return update_realtime()
+    return update_realtime_lux()
 
 @app.route('/api/realtime', methods=['GET'])
 def get_realtime():
-    return jsonify(get_latest_data())
+    return jsonify(latest_realtime_data_lux())
 
 
 # @app.route('/api/store', methods=['POST'])
