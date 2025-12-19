@@ -2,8 +2,8 @@ from flask import Flask, render_template, request, jsonify
 import mysql.connector
 from Backend import app
 from datetime import datetime, timedelta
-from Backend.DataCreate.realtime import update_realtime_lux, latest_realtime_data_lux
-
+from Backend.DataCreate.realtime import update_realtime_lux, get_latest_data_lux,update_realtime_temperature,get_latest_data_temperature
+from Backend.DataCreate.pengolahan import process_group_condition,get_latest_data_condition
 
 @app.route('/')
 def index():
@@ -13,13 +13,32 @@ def index():
 def api():
     return "ini adalah api"
 
-@app.route('/api/realtime', methods=['POST'])
+@app.route('/api/realtime/lux', methods=['POST'])
 def receive_realtime():
     return update_realtime_lux()
 
-@app.route('/api/realtime', methods=['GET'])
+
+
+
+@app.route('/api/realtime/lux', methods=['GET'])
 def get_realtime():
-    return jsonify(latest_realtime_data_lux())
+    return get_latest_data_lux()
+
+
+@app.route('/api/realtime/dht', methods=['POST'])
+def receive_realtime_temperature():
+    return update_realtime_temperature()
+
+
+
+@app.route('/api/realtime/dht', methods=['GET'])
+def get_realtime_temperature():
+    return get_latest_data_temperature()
+
+@app.route('/api/realtime/condition', methods=['GET'])
+def receive_realtime_condition():
+    process_group_condition() 
+    return get_latest_data_condition()
 
 
 # @app.route('/api/store', methods=['POST'])
