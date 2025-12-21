@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LuxGrow Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .sensor-card {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        .sensor-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .sensor-label {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+        }
+        .status.good { background-color: #28a745; }
+        .status.warning { background-color: #ffc107; color: #000; }
+        .status.danger { background-color: #dc3545; }
+        .timestamp {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-danger { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LuxGrow Sensor Dashboard</h1>
+        
+        <div class="controls">
+            <button class="btn-primary" onclick="fetchDataOnce()">Refresh Data</button>
+            <button class="btn-success" onclick="startAutoUpdate()">Start Auto Update</button>
+            <button class="btn-danger" onclick="stopAutoUpdate()">Stop Auto Update</button>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-label">Light Intensity (Lux)</div>
+            <div class="sensor-value" id="lux-value">-</div>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-label">Temperature</div>
+            <div class="sensor-value" id="temperature">-</div>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-label">Humidity</div>
+            <div class="sensor-value" id="humidity">-</div>
+        </div>
+
+        <div class="sensor-card">
+            <div class="sensor-label">Light Condition</div>
+            <div class="status" id="condition">-</div>
+        </div>
+
+        <div class="timestamp" id="last-update">Last Update: -</div>
+    </div>
+
+    <script>
+        let updateInterval = null;
+
+        // Update UI dengan data dari API
+        function updateUI(data) {
+            document.getElementById('lux-value').textContent = data.lux || '-';
+            document.getElementById('temperature').textContent = data.temperature ? `${data.temperature}°C` : '-';
+            document.getElementById('humidity').textContent = data.humidity ? `${data.humidity}%` : '-';
+            
+            const conditionElement = document.getElementById('condition');
+            const condition = data.condition || 'Data tidak tersedia';
+            conditionElement.textContent = condition;
+            
+            // Set status color based on condition
+            conditionElement.className = 'status';
+            if (condition.includes('baik')) {
+                conditionElement.classList.add('good');
+            } else if (condition.includes('tidak baik')) {
+                conditionElement.classList.add('warning');
+            } else {
+                conditionElement.classList.add('danger');
+            }
+            
+            document.getElementById('last-update').textContent = 
+                `Last Update: ${new Date().toLocaleString()}`;
+        }
+
+        // Ambil data sekali
+        async function fetchDataOnce() {
+            try {
+                // POST condition dulu untuk update klasifikasi
+                await fetch('/api/realtime/condition', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                // Fetch semua data
+                const [luxRes, dhtRes, conditionRes] = await Promise.all([
+                    fetch('/api/realtime/lux'),
+                    fetch('/api/realtime/dht'),
+                    fetch('/api/realtime/condition')
+                ]);
+
+                const luxData = await luxRes.json();
+                const dhtData = await dhtRes.json();
+                const conditionData = await conditionRes.json();
+
+                const data = {
+                    lux: luxData.lux,
+                    temperature: dhtData.temperature,
+                    humidity: dhtData.humidity,
+                    condition: conditionData.klasifikasi
+                };
+
+                updateUI(data);
+                console.log('Data fetched:', data);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // Start auto-update
+        function startAutoUpdate() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+            
+            updateInterval = setInterval(() => {
+                fetchDataOnce();
+            }, 3000); // Update setiap 3 detik
+            
+            alert('Auto-update started (every 3 seconds)');
+        }
+
+        // Stop auto-update
+        function stopAutoUpdate() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+                updateInterval = null;
+                alert('Auto-update stopped');
+            }
+        }
+
+        // Load data pertama kali saat halaman dimuat
+        window.addEventListener('load', () => {
+            fetchDataOnce();
+        });
+    </script>
+</body>
+</html>
