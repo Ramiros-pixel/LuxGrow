@@ -15,6 +15,10 @@ def get_db_connection():
 @app.route('/')
 def index():
     return send_from_directory('..', 'index.html')
+
+@app.route('/assets/<path:filename>')
+def serve_assets(filename):
+    return send_from_directory('../assets', filename)
 @app.route('/api')
 def api():
     return "ini adalah api"
