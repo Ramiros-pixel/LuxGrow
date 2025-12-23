@@ -9,14 +9,17 @@ def process_group_condition():
     def condition():
 
 
-        if get_latest_data_lux()['lux'] > 300 and get_latest_data_lux()['lux'] < 22800:
-            return 'Cahaya baik'
-        elif get_latest_data_lux()['lux'] > 50:
-            return 'Cahaya tidak baik'
-        elif get_latest_data_lux()['lux'] > 20:
-            return 'Cahaya baik'
+        # Fetch data once
+        lux_data = get_latest_data_lux()
+        lux_value = lux_data.get('lux', 0) if lux_data else 0
+
+        # Classification Logic
+        if lux_value < 300:
+            return 'Cahaya terlalu rendah' # < 300
+        elif 300 <= lux_value <= 22800:
+            return 'Cahaya baik'           # 300 - 22800
         else:
-            return 'Cahaya sangat kurang'
+            return 'Cahaya terlalu tinggi' # > 22800
         
     global group_condition
     data = request.get_json() or {}

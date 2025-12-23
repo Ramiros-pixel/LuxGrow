@@ -1,192 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LuxGrow Dashboard</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .sensor-card {
-            background: #f8f9fa;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 5px;
-            border-left: 4px solid #007bff;
-        }
-        .sensor-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #007bff;
-        }
-        .sensor-label {
-            color: #666;
-            margin-bottom: 5px;
-        }
-        .status {
-            padding: 5px 10px;
-            border-radius: 3px;
-            color: white;
-            font-weight: bold;
-        }
-        .status.good { background-color: #28a745; }
-        .status.warning { background-color: #ffc107; color: #000; }
-        .status.danger { background-color: #dc3545; }
-        .timestamp {
-            font-size: 12px;
-            color: #999;
-            margin-top: 10px;
-        }
-        .controls {
-            margin: 20px 0;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .btn-primary { background-color: #007bff; color: white; }
-        .btn-success { background-color: #28a745; color: white; }
-        .btn-danger { background-color: #dc3545; color: white; }
-    </style>
+    <title>LuxGrow - Smart Agriculture Dashboard</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
-    <div class="container">
-        <h1>LuxGrow Sensor Dashboard</h1>
-        
-        <div class="controls">
-            <button class="btn-primary" onclick="fetchDataOnce()">Refresh Data</button>
-            <button class="btn-success" onclick="startAutoUpdate()">Start Auto Update</button>
-            <button class="btn-danger" onclick="stopAutoUpdate()">Stop Auto Update</button>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="brand">
+            <div class="brand-logo">L</div>
+            <div class="brand-info">
+                <h1>LuxGrow</h1>
+                <p>Smart Agro System</p>
+            </div>
         </div>
 
-        <div class="sensor-card">
-            <div class="sensor-label">Light Intensity (Lux)</div>
-            <div class="sensor-value" id="lux-value">-</div>
+        <div class="nav-menu">
+            <a href="#" class="nav-item active" data-target="dashboard">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="#" class="nav-item" data-target="statistics">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="20" x2="18" y2="10"></line>
+                    <line x1="12" y1="20" x2="12" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="14"></line>
+                </svg>
+                <span>Statistics</span>
+            </a>
+
+            <a href="#" class="nav-item" data-target="classification">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 6 0 5.5-4.78 10-10 12z"></path>
+                    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path>
+                </svg>
+                <span>Classification</span>
+            </a>
         </div>
+    </nav>
 
-        <div class="sensor-card">
-            <div class="sensor-label">Temperature</div>
-            <div class="sensor-value" id="temperature">-</div>
-        </div>
+    <!-- Main Content Area -->
+    <main class="main-content">
 
-        <div class="sensor-card">
-            <div class="sensor-label">Humidity</div>
-            <div class="sensor-value" id="humidity">-</div>
-        </div>
+        <!-- DASHBOARD VIEW -->
+        <section id="dashboard" class="view-section active-view">
+            <header class="section-header">
+                <h2 class="section-title">Live Overview</h2>
+                <p class="section-subtitle">Real-time sensor monitoring</p>
+            </header>
 
-        <div class="sensor-card">
-            <div class="sensor-label">Light Condition</div>
-            <div class="status" id="condition">-</div>
-        </div>
+            <div class="dashboard-grid">
+                <!-- Light Sensor -->
+                <div class="card">
+                    <div class="card-header">
+                        <span>Light Intensity</span>
+                        <div class="card-icon">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="5" />
+                                <path
+                                    d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="card-value"><span id="lux-value">--</span> <span
+                            style="font-size:1rem;color:#777">Lux</span></div>
+                </div>
 
-        <div class="timestamp" id="last-update">Last Update: -</div>
-    </div>
+                <!-- Temperature -->
+                <div class="card">
+                    <div class="card-header">
+                        <span>Temperature</span>
+                        <div class="card-icon">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="card-value"><span id="temperature">--</span> <span
+                            style="font-size:1rem;color:#777">°C</span></div>
+                </div>
 
-    <script>
-        let updateInterval = null;
+                <!-- Humidity -->
+                <div class="card">
+                    <div class="card-header">
+                        <span>Humidity</span>
+                        <div class="card-icon">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="card-value"><span id="humidity">--</span> <span
+                            style="font-size:1rem;color:#777">%</span></div>
+                </div>
+            </div>
 
-        // Update UI dengan data dari API
-        function updateUI(data) {
-            document.getElementById('lux-value').textContent = data.lux || '-';
-            document.getElementById('temperature').textContent = data.temperature ? `${data.temperature}°C` : '-';
-            document.getElementById('humidity').textContent = data.humidity ? `${data.humidity}%` : '-';
-            
-            const conditionElement = document.getElementById('condition');
-            const condition = data.condition || 'Data tidak tersedia';
-            conditionElement.textContent = condition;
-            
-            // Set status color based on condition
-            conditionElement.className = 'status';
-            if (condition.includes('baik')) {
-                conditionElement.classList.add('good');
-            } else if (condition.includes('tidak baik')) {
-                conditionElement.classList.add('warning');
-            } else {
-                conditionElement.classList.add('danger');
-            }
-            
-            document.getElementById('last-update').textContent = 
-                `Last Update: ${new Date().toLocaleString()}`;
-        }
+            <!-- Controls -->
+            <div style="margin-top: 2rem; display: flex; gap: 1rem; align-items: center;">
+                <button id="btn-refresh"
+                    style="padding: 10px 20px; background: var(--primary-color); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: black;">Refresh
+                    Data</button>
+                <div id="last-update" style="color: #666; font-size: 0.9rem;">Waiting...</div>
+            </div>
+        </section>
 
-        // Ambil data sekali
-        async function fetchDataOnce() {
-            try {
-                // POST condition dulu untuk update klasifikasi
-                await fetch('/api/realtime/condition', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({})
-                });
+        <!-- STATISTICS VIEW -->
+        <section id="statistics" class="view-section">
+            <header class="section-header">
+                <h2 class="section-title">Data Analytics</h2>
+                <p class="section-subtitle">Real-time data visualization</p>
+            </header>
 
-                // Fetch semua data
-                const [luxRes, dhtRes, conditionRes] = await Promise.all([
-                    fetch('/api/realtime/lux'),
-                    fetch('/api/realtime/dht'),
-                    fetch('/api/realtime/condition')
-                ]);
+            <div class="card">
+                <h3>Live Sensor Trends</h3>
+                <div class="chart-container">
+                    <canvas id="liveChart"></canvas>
+                </div>
+            </div>
+        </section>
 
-                const luxData = await luxRes.json();
-                const dhtData = await dhtRes.json();
-                const conditionData = await conditionRes.json();
+        <!-- CLASSIFICATION VIEW -->
+        <section id="classification" class="view-section">
+            <header class="section-header">
+                <h2 class="section-title">Classification</h2>
+                <p class="section-subtitle">Intelligent Plant Condition Analysis</p>
+            </header>
 
-                const data = {
-                    lux: luxData.lux,
-                    temperature: dhtData.temperature,
-                    humidity: dhtData.humidity,
-                    condition: conditionData.klasifikasi
-                };
+            <div class="dashboard-grid">
+                <div class="classification-box" style="grid-column: span 2;">
+                    <div class="classification-icon" id="class-icon">🌱</div>
+                    <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Condition Assessment</h3>
+                    <div id="condition-display" class="status-badge" style="font-size: 1.2rem; padding: 10px 20px;">
+                        Analyzing...
+                    </div>
+                    <p style="margin-top: 20px; line-height: 1.6; color: #aaa;">
+                        Our system analyzes real-time light intensity (Lux), temperature, and humidity to determine
+                        optimal growing conditions for your crops.
+                    </p>
+                </div>
+            </div>
+        </section>
 
-                updateUI(data);
-                console.log('Data fetched:', data);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-            }
-        }
+    </main>
 
-        // Start auto-update
-        function startAutoUpdate() {
-            if (updateInterval) {
-                clearInterval(updateInterval);
-            }
-            
-            updateInterval = setInterval(() => {
-                fetchDataOnce();
-            }, 3000); // Update setiap 3 detik
-            
-            alert('Auto-update started (every 3 seconds)');
-        }
-
-        // Stop auto-update
-        function stopAutoUpdate() {
-            if (updateInterval) {
-                clearInterval(updateInterval);
-                updateInterval = null;
-                alert('Auto-update stopped');
-            }
-        }
-
-        // Load data pertama kali saat halaman dimuat
-        window.addEventListener('load', () => {
-            fetchDataOnce();
-        });
-    </script>
+    <!-- External JavaScript -->
+    <script src="assets/js/app.js"></script>
 </body>
+
 </html>
