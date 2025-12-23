@@ -2,10 +2,13 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 import mysql.connector
 from Backend import app
 from datetime import datetime, timedelta
-from Backend.DataCreate.realtime import update_realtime_lux, get_latest_data_lux,update_realtime_temperature,get_latest_data_temperature
 from Backend.DataCreate.pengolahan import process_group_condition,get_latest_data_condition
 from config import DB_CON
-
+from Backend.DataCreate.realtime import (
+    update_realtime_lux, get_latest_data_lux,
+    update_realtime_temperature, get_latest_data_temperature,
+    set_servo_mode, send_servo_command, get_servo_command, get_servo_status
+)
 def get_db_connection():
     return mysql.connector.connect(**DB_CON)
 
@@ -76,6 +79,23 @@ def store_data_temperature():
     cur.close()
     return jsonify({'status':'success'}),200
 
+#FUNGSI UNTUK SERVO
+# Servo Routes
+@app.route('/api/servo/mode', methods=['POST'])
+def set_servo_mode_route():
+    return set_servo_mode()
+
+@app.route('/api/servo/command', methods=['POST'])
+def send_servo_command_route():
+    return send_servo_command()
+
+@app.route('/api/servo/command', methods=['GET'])
+def get_servo_command_route():
+    return jsonify(get_servo_command())
+
+@app.route('/api/servo/status', methods=['GET'])
+def get_servo_status_route():
+    return jsonify(get_servo_status())
 
 
 # |||||||||||||||||||
