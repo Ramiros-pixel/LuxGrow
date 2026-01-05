@@ -9,7 +9,10 @@ const CONFIG = {
     ENDPOINTS: {
         LUX: '/api/realtime/lux',
         DHT: '/api/realtime/dht',
-        CONDITION: '/api/realtime/condition'
+        CONDITION: '/api/realtime/condition',
+        SERVO_MODE: '/api/servo/mode',
+        SERVO_COMMAND: '/api/servo/command',
+        SERVO_STATUS: '/api/servo/status'
     },
     MAX_CHART_POINTS: 20
 };
@@ -25,7 +28,17 @@ const ui = {
     lastUpdate: document.getElementById('last-update'),
     conditionDisplay: document.getElementById('condition-display'),
     classIcon: document.getElementById('class-icon'),
-    refreshBtn: document.getElementById('btn-refresh')
+    refreshBtn: document.getElementById('btn-refresh'),
+    // Servo UI
+    servoModeToggle: document.getElementById('servo-mode-toggle'),
+    servoModeText: document.getElementById('servo-mode-text'),
+    servoAngleDisplay: document.getElementById('servo-angle-display'),
+    servoProgressBar: document.getElementById('servo-progress-bar'),
+    servoManualControls: document.getElementById('manual-controls'),
+    servoAutoMessage: document.getElementById('auto-message'),
+    servoRxSlider: document.getElementById('servo-slider'),
+    servoBtnSet: document.getElementById('btn-set-angle'),
+    servoBtnCmds: document.querySelectorAll('.btn-servo')
 };
 
 // Navigation Handling
@@ -137,6 +150,81 @@ function updateChart(timestamp, lux, temp) {
     mainChart.update();
 }
 
+// Servo Logic
+async function fetchServoStatus() {
+    try {
+        const res = await fetch(CONFIG.ENDPOINTS.SERVO_STATUS);
+        const data = await res.json();
+
+        updateServoUI(data);
+    } catch (error) {
+        console.error("Error fetching servo status:", error);
+    }
+}
+
+function updateServoUI(data) {
+    const mode = data.mode || 'manual';
+    const lastCmd = data.last_command || {};
+    const angle = lastCmd.angle !== undefined ? lastCmd.angle : 90;
+
+    // Update Mode Display
+    const isAuto = mode === 'auto';
+    if (ui.servoModeToggle) ui.servoModeToggle.checked = isAuto;
+    if (ui.servoModeText) {
+        ui.servoModeText.textContent = isAuto ? 'Automatic' : 'Manual';
+        ui.servoModeText.style.color = isAuto ? '#30D158' : 'var(--primary-color)';
+    }
+
+    // Toggle Visibility of Manual Controls
+    if (ui.servoManualControls) {
+        if (isAuto) {
+            ui.servoManualControls.style.opacity = '0.3';
+            ui.servoManualControls.style.pointerEvents = 'none';
+            if (ui.servoAutoMessage) ui.servoAutoMessage.style.display = 'block';
+        } else {
+            ui.servoManualControls.style.opacity = '1';
+            ui.servoManualControls.style.pointerEvents = 'all';
+            if (ui.servoAutoMessage) ui.servoAutoMessage.style.display = 'none';
+        }
+    }
+
+    // Update Angle Display
+    if (ui.servoAngleDisplay) ui.servoAngleDisplay.textContent = `${angle}°`;
+    if (ui.servoProgressBar) ui.servoProgressBar.style.width = `${(angle / 180) * 100}%`;
+    if (ui.servoRxSlider) ui.servoRxSlider.value = angle;
+}
+
+async function setServoMode(isAuto) {
+    const mode = isAuto ? 'auto' : 'manual';
+    try {
+        await fetch(CONFIG.ENDPOINTS.SERVO_MODE, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode })
+        });
+        fetchServoStatus(); // Refresh UI immediately
+    } catch (error) {
+        console.error("Error setting servo mode:", error);
+    }
+}
+
+async function sendServoCommand(command, angle) {
+    try {
+        const body = {};
+        if (command) body.command = command;
+        if (angle !== undefined) body.angle = parseInt(angle);
+
+        await fetch(CONFIG.ENDPOINTS.SERVO_COMMAND, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        fetchServoStatus(); // Refresh UI immediately
+    } catch (error) {
+        console.error("Error sending servo command:", error);
+    }
+}
+
 // Data Fetching Logic
 async function fetchData() {
     try {
@@ -151,6 +239,9 @@ async function fetchData() {
             fetch(CONFIG.ENDPOINTS.DHT),
             fetch(CONFIG.ENDPOINTS.CONDITION)
         ]);
+
+        // Also fetch servo status
+        fetchServoStatus();
 
         const luxData = await luxRes.json();
         const dhtData = await dhtRes.json();
@@ -222,6 +313,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Attach Listeners
     if (ui.refreshBtn) ui.refreshBtn.addEventListener('click', fetchData);
+
+    // Servo Listeners
+    if (ui.servoModeToggle) {
+        ui.servoModeToggle.addEventListener('change', (e) => {
+            setServoMode(e.target.checked);
+        });
+    }
+
+    if (ui.servoBtnSet) {
+        ui.servoBtnSet.addEventListener('click', () => {
+            const angle = ui.servoRxSlider.value;
+            sendServoCommand(null, angle);
+        });
+    }
+
+    ui.servoBtnCmds.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const cmd = e.target.getAttribute('data-cmd');
+            sendServoCommand(cmd);
+        });
+    });
 
     // Auto Update Interval
     setInterval(fetchData, CONFIG.UPDATE_INTERVAL);

@@ -115,6 +115,69 @@
                     <div class="card-value"><span id="humidity">--</span> <span
                             style="font-size:1rem;color:#777">%</span></div>
                 </div>
+
+                <!-- Servo Control -->
+                <div class="card">
+                    <div class="card-header">
+                        <span>Servo Control</span>
+                        <div class="card-icon">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="servo-controls" style="margin-top: 15px;">
+                        <!-- Mode Toggle -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #333;">
+                            <div>
+                                <div style="font-size: 0.9rem; color: #aaa;">Mode</div>
+                                <div id="servo-mode-text" style="font-weight: bold; color: var(--primary-color);">Manual</div>
+                            </div>
+                            <label class="switch" style="position: relative; display: inline-block; width: 50px; height: 24px;">
+                                <input type="checkbox" id="servo-mode-toggle">
+                                <span class="slider round" style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px;"></span>
+                            </label>
+                            <style>
+                                .switch input { opacity: 0; width: 0; height: 0; }
+                                .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+                                input:checked + .slider { background-color: var(--primary-color); }
+                                input:focus + .slider { box-shadow: 0 0 1px var(--primary-color); }
+                                input:checked + .slider:before { transform: translateX(26px); }
+                            </style>
+                        </div>
+
+                        <!-- Status Display -->
+                         <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span style="color: #aaa;">Current Angle</span>
+                                <span id="servo-angle-display" style="font-weight: bold;">--°</span>
+                            </div>
+                            <div style="width: 100%; background: #333; height: 6px; border-radius: 3px;">
+                                <div id="servo-progress-bar" style="width: 0%; height: 100%; background: var(--secondary-color); border-radius: 3px; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Manual Controls -->
+                        <div id="manual-controls" style="transition: opacity 0.3s;">
+                            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                <button class="btn-servo" data-cmd="open" style="flex: 1; padding: 8px; background: #333; border: 1px solid #444; color: white; border-radius: 6px; cursor: pointer;">Open (0°)</button>
+                                <button class="btn-servo" data-cmd="close" style="flex: 1; padding: 8px; background: #333; border: 1px solid #444; color: white; border-radius: 6px; cursor: pointer;">Close (180°)</button>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <input type="range" id="servo-slider" min="0" max="180" step="1" value="90" style="flex: 1;  accent-color: var(--secondary-color);">
+                                <button id="btn-set-angle" style="padding: 5px 12px; background: var(--secondary-color); border: none; border-radius: 6px; color: black; font-weight: bold; cursor: pointer;">Set</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Auto Message -->
+                        <div id="auto-message" style="display: none; text-align: center; color: #888; font-size: 0.9rem; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 6px;">
+                            <span style="display: block; font-size: 1.2rem; margin-bottom: 5px;">🤖</span>
+                            Automatic control active.<br>Angle adjusts based on light intensity.
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Controls -->
