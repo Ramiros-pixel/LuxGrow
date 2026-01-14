@@ -53,35 +53,55 @@ def post_realtime_condition():
 
 @app.route('/api/store/lux', methods=['POST'])
 def store_data_lux():
-    data = request.json
-    lux=data.get('lux')
-
-    conn =get_db_connection()
-    cur =conn.cursor()
-    cur.execute(
-        "INSERT INTO lux (lux) VALUES (%s)",
-        (lux,)
-    )
-    conn.commit()
-    cur.close()
-    conn.close()
-    return jsonify({'status':'success'}),200
+    try:
+        data = request.get_json() or {}
+        print(f"Received lux data: {data}")
+        lux = data.get('lux')
+        
+        if lux is None:
+            return jsonify({'error': 'Lux value required'}), 400
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO lux (lux) VALUES (%s)",
+            (lux,)
+        )
+        conn.commit()
+        print(f"Lux data inserted: {lux}")
+        cur.close()
+        conn.close()
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        print(f"Error storing lux data: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/store/dht', methods=['POST'])
 def store_data_temperature():
-    data =  request.json
-    temperature=data.get('temperature')
-    humidity=data.get('humidity')
-    conn =get_db_connection()
-    cur= conn.cursor()
-    cur.execute(
-        "INSERT INTO dht (temperature, humidity) VALUES (%s, %s)",
-        (temperature, humidity)
-    )
-    conn.commit()
-    cur.close()
-    return jsonify({'status':'success'}),200
+    try:
+        data = request.get_json() or {}
+        print(f"Received DHT data: {data}")
+        temperature = data.get('temperature')
+        humidity = data.get('humidity')
+        
+        if temperature is None or humidity is None:
+            return jsonify({'error': 'Temperature and humidity required'}), 400
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO dht (temperature, humidity) VALUES (%s, %s)",
+            (temperature, humidity)
+        )
+        conn.commit()
+        print(f"DHT data inserted: {temperature}°C, {humidity}%")
+        cur.close()
+        conn.close()
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        print(f"Error storing DHT data: {e}")
+        return jsonify({'error': str(e)}), 500
 
 #FUNGSI UNTUK SERVO
 # Servo Routes

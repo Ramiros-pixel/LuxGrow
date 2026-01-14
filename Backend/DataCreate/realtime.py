@@ -3,19 +3,43 @@ import mysql.connector
 from Backend import app
 from datetime import datetime, timedelta
 
+from flask import Flask, render_template, request, jsonify
+import mysql.connector
+from Backend import app
+from datetime import datetime, timedelta
+from config import DB_CON
+
+def get_db_connection():
+    return mysql.connector.connect(**DB_CON)
+
 latest_realtime_data_lux={}
 def update_realtime_lux():
     global latest_realtime_data_lux
-    data = request.get_json() or {}  
-    lux = data.get('lux')
-    timestamp = data.get('timestamp', datetime.now().isoformat())
-    
-    latest_realtime_data_lux = {
-        'lux': lux,
-        'timestamp': timestamp
-    }
-    
-    return jsonify({'status': 'success'}), 200
+    try:
+        data = request.get_json() or {}  
+        lux = data.get('lux')
+        timestamp = data.get('timestamp', datetime.now().isoformat())
+        
+        # Update realtime data
+        latest_realtime_data_lux = {
+            'lux': lux,
+            'timestamp': timestamp
+        }
+        
+        # Auto save to database
+        if lux is not None:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("INSERT INTO lux (lux) VALUES (%s)", (lux,))
+            conn.commit()
+            cur.close()
+            conn.close()
+            print(f"✓ Lux auto-saved to DB: {lux}")
+        
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        print(f"✗ Error in update_realtime_lux: {e}")
+        return jsonify({'error': str(e)}), 500
 
 def get_latest_data_lux():
     return latest_realtime_data_lux
@@ -23,18 +47,33 @@ def get_latest_data_lux():
 latest_temperature={}
 def update_realtime_temperature():
     global latest_temperature
-    data = request.get_json() or {}
-    temperature = data.get('temperature')
-    humidity= data.get('humidity')
-    timestamp = data.get('timestamp', datetime.now().isoformat())
+    try:
+        data = request.get_json() or {}
+        temperature = data.get('temperature')
+        humidity = data.get('humidity')
+        timestamp = data.get('timestamp', datetime.now().isoformat())
 
-    latest_temperature = {
-        'temperature': temperature,
-        'humidity': humidity,
-        'timestamp': timestamp
-    }
+        # Update realtime data
+        latest_temperature = {
+            'temperature': temperature,
+            'humidity': humidity,
+            'timestamp': timestamp
+        }
+        
+        # Auto save to database
+        if temperature is not None and humidity is not None:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            cur.execute("INSERT INTO dht (temperature, humidity) VALUES (%s, %s)", (temperature, humidity))
+            conn.commit()
+            cur.close()
+            conn.close()
+            print(f"✓ DHT auto-saved to DB: {temperature}°C, {humidity}%")
 
-    return jsonify({'status': 'success'}), 200
+        return jsonify({'status': 'success'}), 200
+    except Exception as e:
+        print(f"✗ Error in update_realtime_temperature: {e}")
+        return jsonify({'error': str(e)}), 500
 
 def get_latest_data_temperature():
     return latest_temperature

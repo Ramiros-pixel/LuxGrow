@@ -1,19 +1,24 @@
 import os 
 from dotenv import load_dotenv 
+import mysql.connector
 
 load_dotenv()
 
-DB_HOST = os.getenv('DB_HOST')
-DB_NAME = os.getenv('DB_NAME') 
-DB_PORT = os.getenv('DB_PORT')
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-
-DB_CON={
-    'host': DB_HOST,
-    'database': DB_NAME,
-    'port': DB_PORT,
-    'user': DB_USER,
-    'password': DB_PASSWORD
+DB_CON = {
+    'host': os.getenv('DB_HOST'),
+    'database': os.getenv('DB_NAME'),
+    'port': int(os.getenv('DB_PORT')),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD')
 }
 
+# Debug print
+print(f"DB Config: {DB_CON}")
+
+# Test koneksi database
+try:
+    conn = mysql.connector.connect(**DB_CON)
+    print("✓ Database connection successful")
+    conn.close()
+except Exception as e:
+    print(f"✗ Database connection failed: {e}")
