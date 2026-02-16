@@ -13,7 +13,7 @@ LuxGrow adalah dashboard Smart Agriculture berbasis IoT yang digunakan untuk mem
 
 ## Preview Classification
 
-![Classification](assets/classification.png)
+![Classification](assets/Screenshot 2026-02-16 160317.png)
 
 ## Deskripsi Sistem
 
